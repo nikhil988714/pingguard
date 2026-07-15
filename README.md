@@ -204,8 +204,14 @@ PingGuard was built as a full-stack web application to simplify website monitori
 
 GitHub: **https://github.com/nikhil988714**
 
+Made with ❤️ using **Next.js, TypeScript, Prisma, PostgreSQL, Auth.js and Tailwind CSS**.
+
+If you found this project helpful, consider giving it a ⭐ on GitHub.
+
 ---
+
+
 
 ## 📄 License
 
-Licensed under the MIT License.
+Licensed under the MIT License
