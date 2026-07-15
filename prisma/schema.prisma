@@ -1,0 +1,146 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  createdAt     DateTime  @default(now())
+
+  projects Project[]
+
+  accounts Account[]
+  sessions Session[]
+}
+
+model Project {
+  id        String    @id @default(uuid())
+  name      String
+  userId    String
+  createdAt DateTime  @default(now())
+  status    String    @default("offline")
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  settings  Setting?
+  websites  Website[]
+}
+
+model Website {
+  id                String              @id @default(uuid())
+  url               String
+  projectId         String
+  createdAt         DateTime            @default(now())
+  alerts            Alert[]
+  checks            Check[]
+  PerformanceMetric PerformanceMetric[]
+  UptimeLog         UptimeLog[]
+  project           Project             @relation(fields: [projectId], references: [id], onDelete: Cascade)
+}
+
+model Check {
+  id           String   @id @default(uuid())
+  status       Boolean
+  responseTime Int?
+  statusCode   Int?
+  websiteId    String
+  errorMessage String?
+  errorType    String?
+  checkedAt    DateTime @default(now())
+  headers      Json?
+  contentSize  Int?
+  sslValid     Boolean?
+  dnsTime      Int?
+  connectTime  Int?
+  transferTime Int?
+  website      Website  @relation(fields: [websiteId], references: [id], onDelete: Cascade)
+}
+
+model Setting {
+  id         String   @id @default(uuid())
+  projectId  String   @unique
+  status     Boolean  @default(true)
+  interval   Int      @default(300)
+  notifyType String   @default("email")
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  project    Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+}
+
+model Alert {
+  id         String    @id @default(uuid())
+  websiteId  String
+  message    String
+  createdAt  DateTime  @default(now())
+  resolvedAt DateTime?
+  website    Website   @relation(fields: [websiteId], references: [id], onDelete: Cascade)
+}
+
+model PerformanceMetric {
+  id           String   @id @default(uuid())
+  websiteId    String
+  timestamp    DateTime @default(now())
+  responseTime Int
+  statusCode   Int
+  contentSize  Int?
+  sslValid     Boolean?
+  dnsTime      Int?
+  connectTime  Int?
+  transferTime Int?
+  Website      Website  @relation(fields: [websiteId], references: [id], onDelete: Cascade)
+}
+
+model UptimeLog {
+  id              String   @id @default(uuid())
+  websiteId       String
+  date            DateTime
+  uptime          Float
+  downtime        Float
+  checks          Int
+  failures        Int
+  avgResponseTime Float
+  Website         Website  @relation(fields: [websiteId], references: [id], onDelete: Cascade)
+}
+
+model Account {
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([provider, providerAccountId])
+}
+
+model Session {
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([sessionToken])
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@id([identifier, token])
+}
